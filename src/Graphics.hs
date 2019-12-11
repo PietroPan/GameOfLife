@@ -16,24 +16,24 @@ import Grids
 type MainState = (Grid,Float,[Picture])
 
 loadIMG :: IO[Picture]
-loadIMG = do void <- loadJuicy "Images/Void.png" --0
-             cell0 <- loadJuicy "Images/Cell.png" --1
-             cell1 <- loadJuicy "Images/Cell1.png" --2
-             cell2 <- loadJuicy "Images/Cell2.png" --3
-             cell3 <- loadJuicy "Images/Cell3.png" --4
-             cell4 <- loadJuicy "Images/Cell4.png" --5
-             cell5 <- loadJuicy "Images/Cell5.png" --6
-             cell6 <- loadJuicy "Images/Cell6.png" --7
-             return (map fromJust [void,cell0,cell1,cell2,cell3,cell4,cell5,cell6])
+loadIMG = return[]
+
+grid :: Picture
+grid = Color black (Polygon [(0,0),(1,0),(1,1),(0,1)])
+
+getcell :: Int -> Picture
+getcell age = Color (darker age white) (Polygon [(0,0),(1,0),(1,1),(0,1)])
+
+darker :: Int -> Color -> Color
+darker 0 c = c
+darker age c = darker (age-1) (dark c)
 
 disM :: Display
 disM = InWindow "GoL" (1920,1080) (0,0)
 --disM = FullScreen
 
 inicialState :: [Picture] -> MainState
---inicialState loadedIMG = ((makeVoidGrid (70,50)),0,loadedIMG)
 inicialState loadedIMG = (void,1,loadedIMG)
---inicialState loadedIMG = (void,0,loadedIMG)
 
 eventChange :: Event -> MainState -> MainState
 eventChange (EventKey a Down _ _) s@(g,n,pics) = case a of (Char 'p') | (n/=2) -> (g,2,pics)
@@ -70,8 +70,8 @@ get age | (age > 6) = 7
 drawGrid :: MainState -> Pos -> [Picture]
 drawGrid ([],f,pics) (x,y) = []
 drawGrid (([]:ts),f,pics) (x,y) = drawGrid (ts,f,pics) (0,y-2)
-drawGrid s@(((Void:t):ts),f,pics) (x,y) = (Translate (fromIntegral x) (fromIntegral y) (pics !! 0)) : drawGrid ((t:ts),f,pics) (x+2,y)
-drawGrid s@(((Cell(Alive age):t):ts),f,pics) (x,y) = (Translate (fromIntegral x) (fromIntegral y) (pics !! (get age))) : drawGrid ((t:ts),f,pics) (x+2,y)
+drawGrid s@(((Void:t):ts),f,pics) (x,y) = (Translate (fromIntegral x) (fromIntegral y) grid) : drawGrid ((t:ts),f,pics) (x+2,y)
+drawGrid s@(((Cell(Alive age):t):ts),f,pics) (x,y) = (Translate (fromIntegral x) (fromIntegral y) (getcell age)) : drawGrid ((t:ts),f,pics) (x+2,y)
 
 main :: IO()
 main = do loadedIMG <- loadIMG
