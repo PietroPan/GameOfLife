@@ -77,7 +77,7 @@ closeCheck g pi@(xi,yi) pf@(xf,yf)
     | ((xi/=xf-1) || (yi/=yf-1)) && (validPos pi g) && ((isAlive (findPosGrid pi g)) || (findPosGrid pi g == Cell Dead)) = 1 + closeCheck g (newPos pi pf) pf
     | otherwise = closeCheck g (newPos pi pf) pf
 
-isAlive :: Point -> Bool
+isAlive :: Pointt -> Bool
 isAlive (Cell (Alive _)) = True
 isAlive _ = False
 

@@ -1,9 +1,9 @@
 module Data where
 
 type Grid = [Line]
-type Line = [Point]
+type Line = [Pointt]
 
-data Point
+data Pointt
         = Cell Type
         | Void
     deriving (Read,Show,Eq)

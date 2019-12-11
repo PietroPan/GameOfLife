@@ -18,6 +18,9 @@ type MainState = (Grid,Float,[Picture])
 loadIMG :: IO[Picture]
 loadIMG = return[]
 
+testc :: Picture
+testc = (Color red (Polygon [(0,0),(1,0),(1,1),(0,1)]))
+
 grid :: Picture
 grid = Color black (Polygon [(0,0),(1,0),(1,1),(0,1)])
 
@@ -29,40 +32,56 @@ darker 0 c = c
 darker age c = darker (age-1) (dark c)
 
 disM :: Display
-disM = InWindow "GoL" (1920,1080) (0,0)
---disM = FullScreen
+--disM = InWindow "GoL" (1920,1080) (0,0)
+disM = FullScreen
 
 inicialState :: [Picture] -> MainState
 inicialState loadedIMG = (void,1,loadedIMG)
 
+getPos :: (Float,Float) -> Pos
+getPos (a,b) = (truncate ((a+400)/12),(truncate (abs((b-306)/12))))
+
+changeCell :: Pointt -> Pointt
+changeCell Void = (Cell (Alive 0))
+changeCell (Cell _) = Void
+
 eventChange :: Event -> MainState -> MainState
-eventChange (EventKey a Down _ _) s@(g,n,pics) = case a of (Char 'p') | (n/=2) -> (g,2,pics)
-                                                                      | otherwise -> (g,1,pics)
-                                                           (SpecialKey KeyRight) | (n==1) -> (glider,1.1,pics)
-                                                                                 | (n==1.1) -> (smallexploder,1.2,pics)
-                                                                                 | (n==1.2) -> (exploder,1.3,pics)
-                                                                                 | (n==1.3) -> (cellrow,1.4,pics)
-                                                                                 | (n==1.4) -> (spaceship,1.5,pics)
-                                                                                 | (n==1.5) -> (tumbler,1.6,pics)
-                                                                                 | (n==1.6) -> (void,1,pics)
-                                                           (SpecialKey KeyLeft) | (n==1) -> (tumbler,1.6,pics)
-                                                                                | (n==1.1) -> (void,1,pics)
-                                                                                | (n==1.2) -> (glider,1.1,pics)
-                                                                                | (n==1.3) -> (smallexploder,1.2,pics)
-                                                                                | (n==1.4) -> (exploder,1.3,pics)
-                                                                                | (n==1.5) -> (cellrow,1.4,pics)
-                                                                                | (n==1.6) -> (spaceship,1.5,pics)
-                                                           _ -> (g,n,pics)
+eventChange (EventKey a Down _ (x,y)) s@(g,n,pics) = case a of (Char 'p') | (n>=1) -> (g,(-n),pics)
+                                                                          | (n<2) -> (g,(-n),pics)
+                                                                          | (n==(-3)) -> (g,3,pics)
+                                                                          | otherwise -> (g,n,pics)
+                                                               (SpecialKey KeyRight) | (abs(n)==1) -> (glider,1.1,pics)
+                                                                                     | (abs(n)==1.1) -> (smallexploder,1.2,pics)
+                                                                                     | (abs(n)==1.2) -> (exploder,1.3,pics)
+                                                                                     | (abs(n)==1.3) -> (cellrow,1.4,pics)
+                                                                                     | (abs(n)==1.4) -> (spaceship,1.5,pics)
+                                                                                     | (abs(n)==1.5) -> (tumbler,1.6,pics)
+                                                                                     | otherwise -> (void,1,pics)
+                                                               (SpecialKey KeyLeft) | (abs(n)==1) -> (tumbler,1.6,pics)
+                                                                                    | otherwise -> (void,1,pics)
+                                                                                    | (abs(n)==1.2) -> (glider,1.1,pics)
+                                                                                    | (abs(n)==1.3) -> (smallexploder,1.2,pics)
+                                                                                    | (abs(n)==1.4) -> (exploder,1.3,pics)
+                                                                                    | (abs(n)==1.5) -> (cellrow,1.4,pics)
+                                                                                    | (abs(n)==1.6) -> (spaceship,1.5,pics)
+                                                               (Char 'e') -> (void,(-3),pics)
+                                                               (MouseButton LeftButton) | (n==(-3)) -> ((changePosGrid (getPos (x,y)) (changeCell (findPosGrid (getPos (x,y)) g)) g),n,pics)
+                                                               _ -> (g,n,pics)
 eventChange _ s = s
 
 timeChange :: Float -> MainState -> MainState
-timeChange f s@(g,2,pics) = (g,2,pics) 
-timeChange f s@(g,n,pics) = (nextGrid g,n,pics)
+timeChange f s@(g,n,pics) | (n>0) = (nextGrid g,n,pics)
+                          | otherwise = (g,n,pics)
+
+drawtest :: MainState -> Picture
+drawtest s@(g,n,pics) = pictures ((drawState s):(Translate (-382) (300) testc):[])
 
 drawState :: MainState -> Picture
 --drawState s@(g,f,pics) = rotate (-180) (scale 3 3 (Pictures(drawGrid s (0,0))))
 drawState s@(g,n,pics) = Translate (-400) (-300) (scale 6 6 (Pictures(drawGrid s (0,2*snd(gridSize g)))))
 
+-- (-400, 306) (-394, 306) | (-388, 306) (-382, 306)
+-- (-400, 300) (-394, 300) | (-388, 300) (-382, 300)
 get :: Age -> Int
 get age | (age > 6) = 7
         | otherwise = age+1
@@ -79,7 +98,7 @@ main = do loadedIMG <- loadIMG
                (greyN 0.2)
                6
                (inicialState loadedIMG)
-               drawState
+               drawtest
                eventChange
                timeChange
 
