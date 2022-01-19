@@ -18,17 +18,21 @@ loadIMG :: IO[Picture]
 loadIMG = return[]
 
 testc :: Picture
-testc = (Color red (Polygon [(0,0),(1,0),(1,1),(0,1)]))
+testc = Color red (Polygon [(0,0),(1,0),(1,1),(0,1)])
 
 grid :: Picture
 grid = Color black (Polygon [(0,0),(1,0),(1,1),(0,1)])
 
-getcell :: Int -> Picture
-getcell age = Color (darker age white) (Polygon [(0,0),(1,0),(1,1),(0,1)])
+getcell :: Float -> Picture
+getcell 0 = Color red (Polygon [(0,0),(1,0),(1,1),(0,1)])
+getcell age = Color (makeColor 1 0 0 (1/age)) (Polygon [(0,0),(1,0),(1,1),(0,1)])
 
-darker :: Int -> Color -> Color
-darker 0 c = c
-darker age c = darker (age-1) (dark c)
+--getcell' :: Int -> Picture
+--getcell' age = Color (darker age red) (Polygon [(0,0),(1,0),(1,1),(0,1)])
+
+--darker :: Int -> Color -> Color
+--darker 0 c = c
+--darker age c = darker (age-1) (dark c)
 
 disM :: Display
 disM = InWindow "GoL" (1000,700) (0,0)
@@ -63,6 +67,7 @@ eventChange (EventKey a Down _ (x,y)) s@(g,n,pics) = case a of (Char 'p') | (n>=
                                                                                     | (abs(n)==1.4) -> (exploder,1.3,pics)
                                                                                     | (abs(n)==1.5) -> (cellrow,1.4,pics)
                                                                                     | (abs(n)==1.6) -> (spaceship,1.5,pics)
+                                                               (Char 'o') -> (g,n*(-1),pics)
                                                                (Char 'e') -> (void,(-3),pics)
                                                                (MouseButton LeftButton) | (n==(-3)) -> ((changePosGrid (getPos (x,y)) (changeCell (findPosGrid (getPos (x,y)) g)) g),n,pics)
                                                                _ -> (g,n,pics)
@@ -81,15 +86,15 @@ drawState s@(g,n,pics) = Translate (-400) (-300) (scale 6 6 (Pictures(drawGrid s
 
 -- (-400, 306) (-394, 306) | (-388, 306) (-382, 306)
 -- (-400, 300) (-394, 300) | (-388, 300) (-382, 300)
-get :: Age -> Int
-get age | (age > 6) = 7
+get :: Age -> Float
+get age | (age > 3) = 4
         | otherwise = age+1
 
 drawGrid :: MainState -> Pos -> [Picture]
 drawGrid ([],f,pics) (x,y) = []
 drawGrid (([]:ts),f,pics) (x,y) = drawGrid (ts,f,pics) (0,y-2)
 drawGrid s@(((Void:t):ts),f,pics) (x,y) = (Translate (fromIntegral x) (fromIntegral y) grid) : drawGrid ((t:ts),f,pics) (x+2,y)
-drawGrid s@(((Cell(Alive age):t):ts),f,pics) (x,y) = (Translate (fromIntegral x) (fromIntegral y) (getcell age)) : drawGrid ((t:ts),f,pics) (x+2,y)
+drawGrid s@(((Cell(Alive age):t):ts),f,pics) (x,y) = (Translate (fromIntegral x) (fromIntegral y) (getcell (get age))) : drawGrid ((t:ts),f,pics) (x+2,y)
 
 main :: IO()
 main = do loadedIMG <- loadIMG
@@ -100,4 +105,3 @@ main = do loadedIMG <- loadIMG
                drawtest
                eventChange
                timeChange
-

@@ -8,7 +8,7 @@ data Pointt
         | Void
     deriving (Read,Show,Eq)
 
-type Age = Int
+type Age = Float
 
 data Type
         = Alive Age
