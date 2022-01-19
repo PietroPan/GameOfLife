@@ -1,7 +1,6 @@
 module Main where
 
 import Graphics.Gloss
-import Graphics.Gloss.Juicy
 import Graphics.Gloss.Interface.Pure.Game
 import Graphics.Gloss.Data.Picture
 import Graphics.Gloss.Data.Color
@@ -32,8 +31,8 @@ darker 0 c = c
 darker age c = darker (age-1) (dark c)
 
 disM :: Display
---disM = InWindow "GoL" (1920,1080) (0,0)
-disM = FullScreen
+disM = InWindow "GoL" (1000,700) (0,0)
+--disM = FullScreen
 
 inicialState :: [Picture] -> MainState
 inicialState loadedIMG = (void,1,loadedIMG)
